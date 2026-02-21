@@ -13,8 +13,8 @@ void print_table(bool, bool);
 
 void main()
 {
-	bool isToCelcius = true;
-	bool isAsc = false;
+	bool isToCelcius = false;
+	bool isAsc = true;
 	print_header(isToCelcius);
 	print_table(isToCelcius, isAsc);
 }
