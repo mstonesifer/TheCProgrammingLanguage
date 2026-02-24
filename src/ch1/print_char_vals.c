@@ -13,4 +13,5 @@ void main()
 	printf("|   EOF | %4d |\n", EOF);
 	printf("|   \\n  | %4d |\n", '\n');
 	printf("|_______|______|\n");
+
 }
