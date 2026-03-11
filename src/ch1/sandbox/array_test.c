@@ -3,21 +3,28 @@
 
 void new_arr(char s[]);
 
-/* test what happens when you reassign an array in a function */
+/* test what happens when you create an array in a loop */
 int main()
 {
-	char arr[SIZE];
+	int i, x;
+	x = 0;
+	for(i = 0; i < 4; ++i) {
+		char arr[SIZE * i];
+		++x;
+	}
+	for(i = 0; i < x; ++i) {
+	}
 
-	for(int i = 0; i < SIZE; ++i)
-		arr[i] = i;
+	//for(int i = 0; i < SIZE; ++i)
+	//	arr[i] = i;
 
-	char arr[SIZE * 2];
+	//char arr[SIZE * 2];
 
-	for (int i = 10; i < (SIZE * 2); ++i)
-		arr[i] = i * 4;
+	//for (int i = 10; i < (SIZE * 2); ++i)
+	//	arr[i] = i * 4;
 
-	for(int i = 0; i < SIZE * 2; ++i)
-		printf("%d\n", arr[i]);
+	//for(int i = 0; i < SIZE * 2; ++i)
+	//	printf("%d\n", arr[i]);
 }
 
 void new_arr(char s[])

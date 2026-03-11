@@ -1,0 +1,13 @@
+line 1 is short 25 chars
+line 2 is medium 26 chars
+line 3 is the longest with 36 chars
+line 4 is a super ultra mega long line that comes in and crushes the longest line with 96 chars
+5 tiny 16 chars
+this line is just going to be long for the sake of being greater than 80 chars for testing
+just going to insert an extra line to be sure
+now there will be another line - this line will be extra long but not as long as the longest
+
+the line before this one was empty
+going to add some trailing spaces to this one     
+adding some trailing tabs to this one					
+perhaps I should make sure the trailing characters are not actually there somehow
