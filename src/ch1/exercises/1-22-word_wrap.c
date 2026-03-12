@@ -22,8 +22,11 @@ int wrap_line(char s[], int lim)
 
 	for (i = 0; i < lim - 1 &&
 	     (c = getchar()) != EOF &&
-	     c != '\n'; ++i)
+	     c != '\n'; ++i) {
+		if (i == 0 && c == ' ')
+			continue;
 		s[i] = c;
+	}
 	if (c == '\n' || i == lim - 1) {
 		/* if c is newline, walk back to last non-tab/space */
 		while ((s[i-1] == ' ' || s[i-1] == '\t') && i > 0) // i should not go neg
