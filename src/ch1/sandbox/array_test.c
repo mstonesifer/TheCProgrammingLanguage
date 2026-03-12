@@ -6,14 +6,26 @@ void new_arr(char s[]);
 /* test what happens when you create an array in a loop */
 int main()
 {
-	int i, x;
+	char test[10];
+
+	test[0] = 'c';
+	test[1] = 'a';
+	test[2] = 't';
+	test[3] = '\n';
+	test[4] = '\0';
+	test[5] = 'o';
+	test[6] = 'g';
+	test[7] = '\0';
+
+	printf("output:\n%s", test);
+	/*int i, x;
 	x = 0;
 	for(i = 0; i < 4; ++i) {
 		char arr[SIZE * i];
 		++x;
 	}
 	for(i = 0; i < x; ++i) {
-	}
+	}*/
 
 	//for(int i = 0; i < SIZE; ++i)
 	//	arr[i] = i;
