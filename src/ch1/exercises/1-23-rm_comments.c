@@ -1,10 +1,11 @@
 #include <stdio.h>
 
+
 #define TRUE 1		/* boolean true */
 #define FALSE 0		/* boolean false */
 
 int get_next_newline(void);
-void find_next(char search, int print);
+int find_next(char search, int print);
 
 /* removes comments from a c program */
 int main()
@@ -12,7 +13,12 @@ int main()
 	// comments made from the double slash to the end of the line
 	/* or from slash-star
 	 * with star on next line
-	 * and ending with star-slash */
+	 * and ending with star-slash
+	 * // also, comments do not nest, so this line is only valid
+	 * // because the / is not right next to the *
+	 * // thus these lines are just considered to be in the comment
+	 * and not separate comments.
+	 */
 
 	int c, pc, tmp;
 	int iscomment = FALSE;		/* flag for tracking comments */
@@ -23,9 +29,16 @@ int main()
 	while ((c = getchar()) != EOF) {
 		/* if str or char open, ignore until close */
 		/* str txt "in comments" and chars 'a' should be ignored */
-		if (c == '\"' && pc != '\\') {
-			putchar(c);
-			find_next(c, TRUE);
+		if (c == '"' || c == '\"') {
+			// if not char literal; double quote indicates string
+			if (pc != '\'' || pc != '\\') {
+				putchar(c);
+				while (pc != EOF && (pc == '\\' || pc == '\''))
+					pc = find_next(c, TRUE);
+				if (pc == EOF) {
+					return -1;
+				}
+			}
 			putchar(c);
 		/* when char is possible comment open */
 		} else if (c == '/') {
@@ -37,7 +50,10 @@ int main()
 				putchar(c);
 			/* when cmt st is /\* can ignore until */
 			} else if (c == '*') {
-				find_next('/', FALSE);
+				while (pc != EOF && pc != '\\' && pc != '*')
+					pc = find_next('/', FALSE);
+				if (pc == EOF)
+					return -1;	
 			/* it wasn't a cmt open, it was division op */
 			} else {
 				// print both characters
@@ -57,7 +73,7 @@ int main()
 	printf("/* should also be printed */\n");
 	printf("should '/''/' print\n");
 	/*pri/* inside coment */printf("this is a horrible idea, but still valid\n");
-	printf("4 / 2 = %d = %d", 4 / 2, 4/2);
+	printf("Math should print in the string: 4 / 2 = %d = %d", 4 / 2, 4/2);
 
 	return 0;
 }
@@ -79,8 +95,9 @@ int get_next_newline()
  * param: search: character text was started with to indicate end
  * 	  print:  flag to print searched text
  * 	ignores escaped characters
+ * returns the preceeding char before search or EOF
  */
-void find_next(char search, int print)
+int find_next(char search, int print)
 {
 	//printf("find_next(search = %c, print = %d)",search,print);
 	int c, pc;
@@ -88,7 +105,7 @@ void find_next(char search, int print)
 
 	pc = 0;			/* initialize previous char */
 	while (found == FALSE && (c = getchar()) != EOF) {
-		if ((c == search && pc != '\\') || (c == search && pc == '*')) {
+		if (c == search) {
 			// end char has been found
 			found = TRUE;
 		} else {
@@ -97,4 +114,7 @@ void find_next(char search, int print)
 			pc = c;
 		}
 	}
+	if (c == EOF)
+		return c;
+	return pc;
 }
