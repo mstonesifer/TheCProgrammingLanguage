@@ -1,7 +1,9 @@
 #include <stdio.h>
 
-#define TRUE 1		
-#define FALSE 0		
+#define TRUE 1			
+#define FALSE 0			
+
+#define ERR_INF_LOOP_ESC 10	
 
 int get_next_newline(void);
 int find_next(char search, int print);
@@ -28,15 +30,18 @@ int main()
 	while ((c = getchar()) != EOF) {
 		
 		
-		if ((c == '"' || c == '\') && (pc != '\\' || pc != '\'')) {
-			putchar(c);
-			while (pc != EOF && (pc == '\\' || pc == '\''))
-				pc = find_next(c, TRUE);
-			//putchar(c);
-			if (pc == EOF) {
-				printf(oopsie!");
-				break;
+		if (c == '"' || c == '\"') {
+
+			
+			if (pc != '\'' && pc != '\\') {
+				putchar(c);
+				do
+					pc = find_next(c, TRUE);
+				while (pc != EOF && pc == '\\');
+				if (pc == EOF)
+					return 10;
 			}
+			putchar(c);
 		
 		} else if (c == '/') {
 			
@@ -50,7 +55,7 @@ int main()
 				while (pc != EOF && pc != '\\' && pc != '*')
 					pc = find_next('/', FALSE);
 				if (pc == EOF)
-					break;
+					return 10;
 			
 			} else {
 				
@@ -66,8 +71,8 @@ int main()
 	}
 
 	
-	printf("
-	printf("\n");
+	printf("// should be printed\n");
+	printf("/* should also be printed */\n");
 	printf("should '/''/' print\n");
 	printf("this is a horrible idea, but still valid\n");
 	printf("Math should print in the string: 4 / 2 = %d = %d", 4 / 2, 4/2);
@@ -115,8 +120,3 @@ int find_next(char search, int print)
 		return c;
 	return pc;
 }
-// should be printed
-/* should also be printed */
-should '/''/' print
-this is a horrible idea, but still valid
-Math should print in the string: 4 / 2 = 2 = 2

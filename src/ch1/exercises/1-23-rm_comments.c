@@ -1,8 +1,9 @@
 #include <stdio.h>
 
+#define TRUE 1			/* boolean true */
+#define FALSE 0			/* boolean false */
 
-#define TRUE 1		/* boolean true */
-#define FALSE 0		/* boolean false */
+#define ERR_INF_LOOP_ESC 10	/* error when infinite loop was detected */
 
 int get_next_newline(void);
 int find_next(char search, int print);
@@ -30,14 +31,15 @@ int main()
 		/* if str or char open, ignore until close */
 		/* str txt "in comments" and chars 'a' should be ignored */
 		if (c == '"' || c == '\"') {
+
 			// if not char literal; double quote indicates string
-			if (pc != '\'' || pc != '\\') {
+			if (pc != '\'' && pc != '\\') {
 				putchar(c);
-				while (pc != EOF && (pc == '\\' || pc == '\''))
+				do
 					pc = find_next(c, TRUE);
-				if (pc == EOF) {
-					return -1;
-				}
+				while (pc != EOF && pc == '\\');
+				if (pc == EOF)
+					return 10;
 			}
 			putchar(c);
 		/* when char is possible comment open */
@@ -53,7 +55,7 @@ int main()
 				while (pc != EOF && pc != '\\' && pc != '*')
 					pc = find_next('/', FALSE);
 				if (pc == EOF)
-					return -1;	
+					return 10;
 			/* it wasn't a cmt open, it was division op */
 			} else {
 				// print both characters
