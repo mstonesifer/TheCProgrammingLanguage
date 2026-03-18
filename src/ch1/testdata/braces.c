@@ -1,16 +1,11 @@
 #include <stdio.h>
 
-int main)
+int main) // no open ( on 3,9
 {
-	printf("Hello, World!";
+	int i = 1;
+	while(i < 10) {
+		printf("Hello, World!"; // no close ) on 5,15
+		printf"goodbye");
+	}
 	return 0;
-}
 
-int func()
-{
-	printf("returning 1");
-	return 1;
-
-void func_two(
-		printf
-		}

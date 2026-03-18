@@ -15,12 +15,14 @@
 
 int sidx = 0;			/* current stack index */
 char stack[STACK_SIZE];		/* global char stack buffer */
+int rows[STACK_SIZE];
+int cols[STACK_SIZE];
 
 int is_open_symbol(int c, int pc);
 int is_close_symbol(int c, int pc);
 int goto_newline(void);
 int find_in_line(char search, int col);
-void push(int c);
+void push(int c, int r, int col);
 int pop(void);
 
 /* checks for basic syntax errors by validating all open symbols such as (,[,{,",'
@@ -34,49 +36,84 @@ int main()
 	
 	/* while there is text */
 	while ((c = getchar()) != EOF) {
-		//printf("Checking char %c, and prev char is %c\n", c, pc);
+		//printf("[row: %d; col: %d] Checking char %c, and prev char is %c\n", row, col, c, pc);
 		/* if current char is newline */
 		if (c == '\n') {
 			//printf("Newline found!\n");
 			/* inc row */
 			++row;
-			/* set col to 1 */
-			col = 1;
+			/* set col to 0 */
+			col = 0;
 		/* if current char is tab */
 		} else if (c == '\t') {	
-			//printf("Tab found!\n");
+			//printf("Tab found! col should be %d + %d\n", col, TABSIZE);
 			/* add tab cols */
-			++col;
+			col += (TABSIZE - 1);
 		/* check if current char is a comment */
 		} else if (pc == '/') {
 			/* skip comments */
 			if (c == '/') {
-				printf("Single line comment found!\n");
+				//printf("Single line comment found!\n");
 				c = goto_newline();
+				++row;
+				col = 0;
 			} else if (c == '*') {
-				printf("Multi line comment found!\n");
+				//printf("Multi line comment found!\n");
 				while ((t = find_in_line(c, col)) != END && t == NEW_LINE) {
 			 		if (t == NEW_LINE) {
 						++row;
-						col = 1;
+						col = 0;
 					}
 				}
 				if (t == END)
 					printf("Comment openned at line: %d, pos: %d not closed\n",
 							row, col);
+				col = t;
 			}
 		/* check if current char is string start */
-			/* skip until end of string found */
+		} else if (c == '"') {
+			t = col;
+			/* string should close on same line it's opened on */
+			while ((c = getchar()) != EOF && c != '\n') {
+				/* string close found when not escaped */
+				if (c == '"' && pc != '\\')
+					break;
+				++col;
+				pc = c;
+			}
+			if (c == EOF || c == '\n') {
+				printf("String openned at line: %d, pos: %d not closed\n",
+						row, t);
+				++row;
+				col = 0;
+			}
+		/* check if current char is char start */
+		} else if (c == '\'') {
+			t = col;
+			/*  should close on same line it's opened on */
+			while ((c = getchar()) != EOF && c != '\n') {
+				/* char close found when not escaped */
+				if (c == '"' && pc != '\\')
+					break;
+				++col;	
+				pc = c;
+			}
+			if (c == EOF || c == '\n') {
+				printf("Char openned at line: %d, pos: %d not closed\n",
+						row, t);
+				++row;
+				col = 0;
+			}
 		/* check if current char is open char */
 		} else if (is_open_symbol(c, pc) == TRUE) {
 			/* push to stack */
 			//printf("Pushing %c to stack\n", c);
-			push(c);
+			push(c, row, col);
 		/* check if current char is close char */
 		} else if (is_close_symbol(c, pc) == TRUE) {
 			/* pop from stack */
 			t = pop();
-			//printf("%c popped from stack\n", t);
+			//printf("Comparing '%c' (popped from stack) to '%c' (current char)\n", t, c);
 			/* if stack empty */
 			if (t == EMPTY_STACK)
        				/* print unmatched close */
@@ -94,6 +131,14 @@ int main()
 		++col;
 		/* set pc */
 		pc = c;
+	}
+
+	/* print any remaining items in the stack */
+	if (sidx != 0) {
+		for (int i = 0; i < sidx; ++i) {
+			printf("Unmatched open char '%c' found at line: %d, pos: %d.\n",
+				stack[i], rows[i], cols[i]);
+		}
 	}
 
 	return 0;
@@ -167,19 +212,25 @@ int find_in_line(char search, int col)
 }
 
 /* push: pushes a char to the global stack array */
-void push(int c)
+void push(int c, int r, int col)
 {
 	extern char stack[];
+	extern int rows[];
+	extern int cols[];
 	extern int sidx;
-	++sidx;
+	
+	//printf("stack index is: %d\n",sidx);
 	
 	if (sidx == STACK_SIZE) {
 		puts("Stack full");
-		--sidx;
 		return;
 	}
 
 	stack[sidx] = c;
+	rows[sidx] = r;
+	cols[sidx] = col;
+
+	++sidx;
 }
 
 /* pop: remove the last char from the global stack array; return the char */
@@ -188,17 +239,17 @@ int pop()
 	int val;
 	extern char stack[];
 	extern int sidx;
-	printf("stack index before pop %d\n",sidx);
-	if (sidx-1 < 0) {
-		puts("Stack empty");
+	//printf("stack index before pop %d\n",sidx);
+	if ((sidx - 1) < 0) {
+		//puts("Stack empty");
 		return EMPTY_STACK;
 	}
 
+	--sidx;
 	val = stack[sidx];
 	stack[sidx] = '\0';
-	--sidx;
 
-	printf("stack index after pop %d\n",sidx);
+	//printf("stack index after pop %d\n",sidx);
 	return val;
 }
 
