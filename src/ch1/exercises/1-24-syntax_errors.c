@@ -36,7 +36,6 @@ int main()
 	
 	/* while there is text */
 	while ((c = getchar()) != EOF) {
-		//printf("[row: %d; col: %d] Checking char %c, and prev char is %c\n", row, col, c, pc);
 		/* if current char is newline */
 		if (c == '\n') {
 			//printf("Newline found!\n");
@@ -46,19 +45,16 @@ int main()
 			col = 0;
 		/* if current char is tab */
 		} else if (c == '\t') {	
-			//printf("Tab found! col should be %d + %d\n", col, TABSIZE);
 			/* add tab cols */
 			col += (TABSIZE - 1);
 		/* check if current char is a comment */
 		} else if (pc == '/') {
 			/* skip comments */
 			if (c == '/') {
-				//printf("Single line comment found!\n");
 				c = goto_newline();
 				++row;
 				col = 0;
 			} else if (c == '*') {
-				//printf("Multi line comment found!\n");
 				while ((t = find_comment_end(col)) != END && t == NEW_LINE) {
 			 		if (t == NEW_LINE) {
 						++row;
@@ -107,13 +103,11 @@ int main()
 		/* check if current char is open char */
 		} else if (is_open_symbol(c, pc) == TRUE) {
 			/* push to stack */
-			//printf("Pushing %c to stack\n", c);
 			push(c, row, col);
 		/* check if current char is close char */
 		} else if (is_close_symbol(c, pc) == TRUE) {
 			/* pop from stack */
 			t = pop();
-			//printf("Comparing '%c' (popped from stack) to '%c' (current char)\n", t, c);
 			/* if stack empty */
 			if (t == EMPTY_STACK)
        				/* print unmatched close */
@@ -151,17 +145,13 @@ int main()
  * return 1 if open symbol; otherwise, 0 */
 int is_open_symbol(int c, int pc)
 {
-	//printf("Is %c an open char when %c is the previous?\n", c, pc);
 	/* if prevoius char was escape, cannot be open symbol */
 	if (pc == '\'' || pc == '\\') {
-		//puts("no because escape");
 		return FALSE;
 	}
 	if (c == '(' || c == '[' || c == '{') {
-		//puts("yes");
 		return TRUE;
 	}
-	//puts("no because other");
 	return FALSE;
 }
 
@@ -169,18 +159,13 @@ int is_open_symbol(int c, int pc)
  * return 1 if close symbol; otherwise, 0 */
 int is_close_symbol(int c, int pc)
 {
-	//printf("Is %c a close char when %c is the previous?\n", c, pc);
-
 	/* if prevoius char was escape, cannot be close symbol */
 	if (pc == '\'' || pc == '\\') {
-		//puts("no because escape");
 		return FALSE;
 	}
 	if (c == ')' || c == ']' || c == '}') {
-		//puts("yes");
 		return TRUE;
 	}
-	//puts("no because other");
 	return FALSE;
 }
 
@@ -225,8 +210,6 @@ void push(int c, int r, int col)
 	extern int cols[];
 	extern int sidx;
 	
-	//printf("stack index is: %d\n",sidx);
-	
 	if (sidx == STACK_SIZE) {
 		puts("Stack full");
 		return;
@@ -245,7 +228,7 @@ int pop()
 	int val;
 	extern char stack[];
 	extern int sidx;
-	//printf("stack index before pop %d\n",sidx);
+	
 	if ((sidx - 1) < 0) {
 		//puts("Stack empty");
 		return EMPTY_STACK;
@@ -255,7 +238,6 @@ int pop()
 	val = stack[sidx];
 	stack[sidx] = '\0';
 
-	//printf("stack index after pop %d\n",sidx);
 	return val;
 }
 
