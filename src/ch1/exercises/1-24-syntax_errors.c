@@ -21,7 +21,7 @@ int cols[STACK_SIZE];
 int is_open_symbol(int c, int pc);
 int is_close_symbol(int c, int pc);
 int goto_newline(void);
-int find_in_line(char search, int col);
+int find_comment_end(int col);
 void push(int c, int r, int col);
 int pop(void);
 
@@ -59,7 +59,7 @@ int main()
 				col = 0;
 			} else if (c == '*') {
 				//printf("Multi line comment found!\n");
-				while ((t = find_in_line(c, col)) != END && t == NEW_LINE) {
+				while ((t = find_comment_end(col)) != END && t == NEW_LINE) {
 			 		if (t == NEW_LINE) {
 						++row;
 						col = 0;
@@ -122,10 +122,13 @@ int main()
 			/* if different */
 			else if ((c == ')' && t != '(')
 				 || ( c == '}' && t != '{')
-				 || (c == ']' && t != '['))
-				/* print unmatched open */
+				 || (c == ']' && t != '[')) {
+				/* print unmatched open - mismatch means 2 error chars */
 				printf("Unmatched open char '%c' found at line: %d, pos: %d.\n",
-						t, row, col);
+						t, rows[sidx], cols[sidx]);
+				printf("Unmatched close char '%c' found at line: %d, pos: %d.\n",
+						c, row, col);
+			}
 		}
 		/* incr col */
 		++col;
@@ -190,21 +193,24 @@ int goto_newline()
 	return c;
 }
 
-int find_in_line(char search, int col)
+int find_comment_end(int col)
 {
-	int c;
+	int c, pc;
 	int found = FALSE;
 
+	pc = 0;
 	while (found == FALSE && (c = getchar()) != EOF) {
-		if (c == search) {
-			// end char has been found
+		if (c == '/' && pc == '*') {
+			// comment end has been found
 			found = TRUE;
 		} else {
 			if (c == '\n')
 				return NEW_LINE;
 			else if (c == '\t')
-				col += TABSIZE;
+				col += (TABSIZE - 1);
 		}
+		++col;
+		pc = c;
 	}
 	if (c == EOF)
 		return END;
