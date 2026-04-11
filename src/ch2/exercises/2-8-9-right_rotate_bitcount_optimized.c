@@ -22,9 +22,9 @@ int main(void)
 int rightrot(int x, int n)
 {
 	int m_x = ~(~0 << n);			// bit mask for x
-	int b = x & m_x;			// buffer to store bits before rotate
-	int z = bitcount_optimized(~0);		// int size
-	return (x >> n) | (b << z - n);		// rotate and restore
+	int b = x & m_x;			// buffer to store left before shifting
+	int l = bitcount_optimized((~0u >> n));	// determine left shift
+	return (x >> n) | (b << l);		// shift right and restore left part
 }
 
 /* bitcount: count 1 bits in x */
