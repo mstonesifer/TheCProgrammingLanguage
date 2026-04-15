@@ -21,7 +21,7 @@ int fill(char [], int, int, int);
  */
 int main(int argc, char *argv[])
 {
-	char s1[] = "test1 a-z\n\ttest2 A-Z\n\ttest3 0-9\n\ttest4 a-l0-5\n\ttest5 -a-f\n\ttest6 q-c\n\ttest7 A-F-0";
+	char s1[] = "test1 a-z\n\ttest2 A-Z\n\ttest3 0-9\n\ttest4 a-l0-5\n\ttest5 -a-f\n\ttest6 q-c\n\ttest7 A-F-0\n\ttest8 a-b-c";
 	char s2[ARR_SZ];
 
 	expand(s1, s2);
@@ -61,8 +61,8 @@ int fill(char s[], int si, int f, int l)
 {
 	int i;
 
-	if (f == l)
-		return si;
+	//if (f == l)
+	//	return si;
 	if (f < l)
 		for (i = f+1; i < l; ++i)
 			s[si++] = i;
