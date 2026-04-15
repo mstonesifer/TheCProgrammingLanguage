@@ -18,10 +18,10 @@ void reverse(char []);
  */
 int main(int argc, char *argv[])
 {
-	int i = 19;
+	int i = 15;
 	char s[16];
 
-	itob(i, s, 2);
+	itob(i, s, 16);
 	printf("i is %i\ns is %s\n", i, s);
 	return 0;
 }
@@ -39,7 +39,7 @@ void itob(int n, char s[], int b)
 	i = 0;
 	do {
 		t = (n % b * sign);	/* get next digit */
-		/*  use next digit to determine add '0' or 'a' */
+		/*  use next digit to determine add '0' or 'A' */
 		if (t >= 10)
 			t += 'a' - 10;
 		else
