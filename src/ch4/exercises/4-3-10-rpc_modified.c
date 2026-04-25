@@ -63,6 +63,12 @@
  * array so if we read to far, just decrement the indexer.
  */
 
+/*
+ * 4-11:
+ * Modify `getop` so that it doesn't need to use
+ * `ungetch`. Hint: use an internal static var.
+ */
+
 #define MAXOP	100	/* max size of operand or operator */
 #define NUMBER	'0'	/* signal that a number was found */
 
@@ -218,9 +224,20 @@ void ungetch(int);
 int getop(char s[])
 {
 	int i, c;
+	static int b = EOF;		/* buffer */
 
-	while ((s[0] = c = getch()) == ' ' || c == '\t')
-		;
+	if (b != EOF && b != ' ' && b != '\t' &&
+		!isdigit(b) && b != '.') {
+		c = b;
+		b = EOF;
+		return c;
+	}
+	if (b == EOF || b == ' ' || b == '\t')
+		while ((s[0] = c = getch()) == ' ' || c == '\t') 	
+			;
+	else
+		s[0] = c = b;
+	b = EOF;
 	s[1] = '\0';
 	
 	if (isminus(c) || !isdigit(c) && c != '.' && c != '-')
@@ -233,7 +250,8 @@ int getop(char s[])
 		while (isdigit(s[++i] = c = getch()))
 			;
 	s[i] = '\0';
-	ungetch(c);
+	b = c;
+	//ungetch(c);
 	return NUMBER;
 }
 
