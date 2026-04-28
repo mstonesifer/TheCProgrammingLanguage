@@ -6,7 +6,7 @@
 
 
 /* prototypes */
-void strncpy(char *, char *, int);
+void strncpy_two(char *, char *, int);
 
 /*
  * Exercise description:
@@ -16,11 +16,21 @@ void strncpy(char *, char *, int);
  */
 int main(int argc, char *argv[])
 {
+	char s[32];
+	char t[] = "Hello, World!";
+
+	strncpy_two(s, t, 9);
+	printf("s is now '%s'\n", s);
 	return 0;
 }
 
 /* functions */
-/* strncpy:  copy at most the first n characts of t to s */
-void strncpy(char *s, char *t, int n)
+/* strncpy_two:  copy at most the first n characts of t to s */
+void strncpy_two(char *s, char *t, int n)
 {
+	int i;
+
+	for (i = 0; i < n; i++)
+		*(s+i) = *t++;
+	*(s+i) = '\0';
 }	
