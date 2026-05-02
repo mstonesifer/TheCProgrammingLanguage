@@ -14,9 +14,9 @@ int main(int argc, char *argv)
 	int days, day, month, year;
 	char *name;
 
-	month = 4;
+	month = 3;
 	day = 17;
-	year = 2019;
+	year = 1987;
 	days = day_of_year(year, month, day);
 	if (days)
 		printf("%i/%i/%i is the %i day of the year\n", month, day, year, days);
@@ -25,7 +25,7 @@ int main(int argc, char *argv)
 		return 1;
 	}
 	
-	if(month_day(year, days, &month, &day)) {
+	if (month_day(year, days, &month, &day)) {
 		name = month_name(month);
 		printf("The %i day of the year %i is %s %i\n",
 				days, year, name, day);
@@ -38,6 +38,7 @@ int main(int argc, char *argv)
 }
 
 /* day_of_year:  set day of year from month & day */
+/* this one uses pointer - pointer syntax to address daytab */
 int day_of_year(int year, int month, int day)
 {
 	int i, leap;
@@ -48,17 +49,18 @@ int day_of_year(int year, int month, int day)
 		printf("error: invalid month (%i)\n", month);
 		return 0;
 	}
-	if (day > daytab[leap][month]) {
+	if (day > *( *(daytab + leap) + month)) {
 		name = month_name(month);
 		printf("error: invalid day for month: %s\n", name);
 		return 0;
 	}
 	for (i = 1; i < month; i++)
-		day += daytab[leap][i];
+		day += *( *(daytab + leap) + i);
 	return day;
 }
 
 /* month_day:  set month, day from day of year */
+/* this one uses pointer - index syntax to address daytab */
 int month_day(int year, int yearday, int *pmonth, int *pday)
 {
 	int i, leap;
@@ -68,8 +70,8 @@ int month_day(int year, int yearday, int *pmonth, int *pday)
 		printf("error: invalid number of days\n");
 		return 0;
 	}
-	for (i = 1; yearday > daytab[leap][i]; i++)
-		yearday -= daytab[leap][i];
+	for (i = 1; yearday > (*(daytab + leap))[i]; i++)
+		yearday -= (*(daytab + leap))[i];
 	*pmonth = i;
 	*pday = yearday;
 
