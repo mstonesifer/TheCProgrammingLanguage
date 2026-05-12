@@ -7,7 +7,7 @@
 #define MAXWIDTH 80
 
 int dtab(char *, int, int, int *);
-void ntab(char *, int, int, int *); 
+void ntab(char *, int, int, int *, int); 
 int try_parse_ints(int, char **, int *);
 
 int main(int argc, char *argv[])
@@ -16,21 +16,53 @@ int main(int argc, char *argv[])
 	char entab = 0;		/* default detab */
 	int n[BUF_SZ];
 	char s[BUF_SZ];
+	int m = 0;
+	int tabsprovided = 0;
 
 	/* step through args to find (en/de)tab */
-	while (--argc > 0 && (*++argv)[0] == '-')
-		while (c = *++argv[0])
-			switch (c) {
-				case 'e':
-					entab = 1;
-					break;
-				case 'd':
-					break;
-				default:
-					printf("retab: illegal option %c\n", c);
-					argc = 0;
-					break;
-			}
+	while (--argc > 0 && ((*++argv)[0] == '-' || *argv[0] == '+')) {
+		if (*argv[0] == '-') {
+			printf("foo\n");
+			while (c = *++argv[0])
+				switch (c) {
+					case 'e':
+						entab = 1;
+						break;
+					case 'd':
+						break;
+					case 'm':
+						printf("baz-> %c\n", *argv[0]);
+						if (--argc > 0 && (*++argv)[0]) {
+							char tmp[10];
+							int i;
+							int q;
+							for (i = 0; q = *++argv[0]; i++)
+								tmp[i] = q; 
+							tmp[i] = '\0';
+							int mv = atoi(tmp); 
+							printf("pow-> %c\n", *argv[0]);
+							m = mv - '0';
+						}
+						break;
+					default:
+						printf("retab: illegal option %c\n", c);
+						argc = 0;
+						break;
+				}
+		} else {
+			printf("bar\n");
+			while (c = *++argv[0])
+				switch (c) {
+					case 'n':
+						tabsprovided = 1;
+						if (--argc > 0) {
+							int tv = *++argv[0];
+							*n = tv - '0';
+						}
+						ts = 1;
+				}
+		}
+	}
 
 	/* if any params remaining, they will be tabstops */
 	ts = try_parse_ints(argc, argv, n);
@@ -42,7 +74,7 @@ int main(int argc, char *argv[])
 		return 1;
 
 	if (entab)
-		ntab(s, BUF_SZ, ts, n);
+		ntab(s, BUF_SZ, ts, n, m);
 	else {
 		while((len = dtab(s, BUF_SZ, ts, n)) > 0)
 			printf("%s", s);
@@ -126,7 +158,7 @@ int dtab(char *s, int size, int ts, int *stops)
 
 /* ntab:  convert spaces to correct number of tabs to reach
  * the specified tab stops */
-void ntab(char *s, int size, int ts, int *stops)
+void ntab(char *s, int size, int ts, int *stops, int margin)
 {
 	int c, i;
 	char arr[TABSIZE + 1];		/* space char buffer */
@@ -134,6 +166,10 @@ void ntab(char *s, int size, int ts, int *stops)
 	i = 0;
 	/* while there is text */
 	while ((c = getchar()) != EOF) {
+		/* create margin */
+		while (i < margin)
+			*s++ = ' ';
+		i = 0;
 		/* if arr is full */
 		if (i == TABSIZE-1) {
 			putchar('\t');		/* put a tab */
