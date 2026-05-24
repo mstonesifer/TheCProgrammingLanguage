@@ -1,5 +1,8 @@
 #include <stdio.h>
 
+#define ASC 1
+#define DESC 0
+
 #define F_NUMERIC 1		/* sort by numeric val */
 #define F_REVERSE 1 << 1	/* sort in reverse order */
 #define F_FOLD 1 << 2		/* ignore case */
@@ -10,18 +13,26 @@
 #define MAX_LINE_COUNT 1024
 #define MAX_LINE 1024
 
+#define CVAL(x) (x - '0')	/* numeric value of char x */
+#define TEN_X_F(x) (x * 10.0)	/* multiply x by ten and convert to float */
+
 int readargs(int, char **);
-void xreadlines(char **s);
+int xreadlines(char **s);
 int xgetline(char *, int);
 int xstrlen(char *);
 void xstrcpy(char *, char *);
 char *cache_alloc(int);
 void xwritelines(char **s);
-void xqsort(char **, int, int, void *);
+void xqsort(void **, int, int, int (*)(void *, void *));
+double xatof(char *);
+int xstrcmp(char *, char *);
+int numcmp(char *, char *);
+void xswap(void **, int, int);
 
 /* line_sort:  sort input lines by various criteria */
 int main(int argc, char *argv[])
 {
+	int lc;
 	int flags = 0;			/* keep track of switches */
 	char *lines[MAX_LINE_COUNT];	/* line collection */
 
@@ -33,9 +44,12 @@ int main(int argc, char *argv[])
 		printf("reverse\n");
 
 	// read in lines
-	xreadlines(lines);
+	lc = xreadlines(lines);
 
+	printf("%i lines read\n", lc);
 	// sort by flags
+	xqsort((void **) lines, 0, lc, 
+			(int (*)(void *, void *))((flags & F_NUMERIC) ? numcmp : xstrcmp)); 
 
 	// write sorted lines
 	xwritelines(lines);
@@ -71,16 +85,19 @@ int readargs(int count, char **args)
 }
 
 /* readlines:  read lines from input to memory cache */
-void xreadlines(char *lines[])
+int xreadlines(char *lines[])
 {
+	int i;
 	int len;			/* current line length */
 	char buf[MAX_LINE];		/* char buffer to read in text */
 
-	while ((len = xgetline(buf, MAX_LINE)) > 0) {
+	for (i = 0; (len = xgetline(buf, MAX_LINE)) > 0; i++) {
 		*lines = cache_alloc(len+1);
 		xstrcpy(*lines, buf);
 		lines++;
 	}
+
+	return i;
 }
 
 /* getline:  read next input line to s and return length */
@@ -140,34 +157,106 @@ void xwritelines(char **s)
 		printf("%s", *s++);
 }
 
-int xstrcmp(char *, char *);
-int numcmp(char *, char *);
-void swap(void *, int, int);
 
 /* qsort:  sort v using parameter comparator routine */
-void xqsort(void *v[], int left, int right, (*comp)(void *, void *))
+void xqsort(void *v[], int left, int right, int (*comp)(void *, void *))
 {
+	putchar('-');
+	int i, last;
 
+	if (left >= right)	/* do nothing if array contains */
+		return;		/* fewer than two elements */
+	xswap(v, left, (left + right)/2);
+	last = left;
+	for (i = left+1; i <= right; i++)
+		if ((*comp)(v[i], v[left]) < 0)
+			xswap(v, ++last, i);
+	xswap(v, left, last);
+	xqsort(v, left, last-1, comp);
+	xqsort(v, last+1, right, comp);
+	printf("done!");
 }
 
 /* strcmp:  compare two strings, asciibetically */
 int xstrcmp(char *s, char *t)
 {
-	return 0;
+	while (*s == *t) {
+		if (NUL == *s)
+			return 0;
+		s++, t++;
+	}
+
+	return *s - *t;
 }
 
 /* numcmp:  compare two strings, numerically */
 int numcmp(char *s, char *t)
 {
+	double u, v;
+
+	u = xatof(s);
+	v = xatof(t);
+
+	if (u > v)
+		return 1;
+	if (u < v)
+		return -1;
+
 	return 0;
 }
 
 /* swap:  switch the contents of an array at indecies i and j in place */
-void swap(void *v[], int i, int j)
+void xswap(void *v[], int i, int j)
 {
 	void *tmp;
 
-	*tmp = v[i];
+	tmp = v[i];
 	v[i] = v[j];
-	v[j] = *tmp;
+	v[j] = tmp;
+}
+
+int xisdigit(char);
+int xisspace(char);
+
+/* atof:  converts a s to a floating point number */
+double xatof(char *s)
+{
+	int c, sign;
+	double n, pow;
+
+	while (xisspace(c = *s++))	/* skip whitespace */
+			;
+	sign = ('-' == c) ? -1 : 1;
+
+	/* check first char if not a minus */
+	if (xisdigit(c))
+		n = CVAL(c);
+
+	/* read integer part */
+	while (xisdigit(c = *s++))
+		n = TEN_X_F(n) + CVAL(c);
+
+	printf("n = %f\n", n);
+	if ('.' != c)
+		return n;
+
+	/* read decimal part */
+	pow = 1.0;
+	while (xisdigit(c = *s++)) {
+		n = TEN_X_F(n) + CVAL(c);
+		pow = TEN_X_F(pow);
+		printf("n = %f | pow = %f\n", n, pow);
+	}
+
+	return sign * n / pow;
+}
+
+int xisdigit(char c)
+{
+	return c >= '0' && c <= '9';
+}
+
+int xisspace(char c)
+{
+	return c == ' ';
 }
