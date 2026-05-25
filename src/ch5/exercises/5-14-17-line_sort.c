@@ -17,38 +17,68 @@
 #define CVAL(x) (x - '0')	/* numeric value of char x */
 #define TEN_X_F(x) (x * 10.0)	/* multiply x by ten and convert to float */
 
-static int flags = 1;		/* set to 1 for debug mode */
+static int flags = 0;		/* set to 1 for debug mode */
 
 int readargs(int, char **);
-int xreadlines(char **s);
+
+int readlines(char **);
 int xgetline(char *, int);
+
 int xstrlen(char *);
 void xstrcpy(char *, char *);
+void dircpy(char *, char *);
+
 char *cache_alloc(int);
+
 void printresult(char **s);
-void xqsort(void **, int, int, int, int (*)(void *, void *));
+
+void qsort(void **, int, int, int, int (*)(void *, void *));
+
 double xatof(char *);
+
 int xstrcmp(char *, char *);
+int strcmpci(char *, char *);
 int numcmp(char *, char *);
+int dircmp(char *, char *);
+int dircmpci(char *, char *);
 void xswap(void **, int, int);
+
+int chartolower(char);
+void strtolower(char *);
+
+int isdirchar(char);
+int xisdigit(char);
+int xisspace(char);
+
 void wdbg(char *);
 
 /* line_sort:  sort input lines by various criteria */
 int main(int argc, char *argv[])
 {
-	int lc;
+	int lc;				/* total lines counted */
 	char *lines[MAX_LINE_COUNT];	/* line collection */
+	int (*comp)(void*, void*);	/* comparitor function */
 
 	// read clargs
 	flags = readargs(argc, argv);
 	
 	// read in lines
-	lc = xreadlines(lines);
+	lc = readlines(lines);
+
+	if (flags & F_NUMERIC)
+		comp = (int (*)(void*, void*))(numcmp);
+	else if (flags & F_DIR)
+		comp = (int (*)(void*, void*))(dircmp);
+	else if ((flags & F_DIR) && (flags & F_FOLD))
+		comp = (int (*)(void*, void*))(dircmpci);
+	else if (flags & F_FOLD)
+		comp = (int (*)(void*, void*))(strcmpci);
+	else
+		comp = (int (*)(void*, void*))(xstrcmp);
 
 	printf("line_sort: sorting %i lines...", lc);
-	// sort by flags
-	xqsort((void**) lines, 0, lc-1, (flags & F_REVERSE), 
-			(int (*)(void*, void*))((flags & F_NUMERIC) ? numcmp : xstrcmp)); 
+	// sort using flags
+	qsort((void**) lines, 0, lc-1, (flags & F_REVERSE), comp); 
 	printf("done!\n");
 
 	// write sorted lines
@@ -65,6 +95,12 @@ int readargs(int count, char **args)
 	while (--count > 0 && *(++args)[0] == '-') {
 		while (NUL != (c = *++args[0]))
 			switch (c) {
+				case 'd':
+					flags |= F_DIR;
+					break;
+				case 'f':
+					flags |= F_FOLD;
+					break;
 				case 'n':
 					flags |= F_NUMERIC;
 					break;
@@ -72,7 +108,7 @@ int readargs(int count, char **args)
 					flags |= F_REVERSE;
 					break;
 				default:
-					printf("sort_lines: options usage -[nr}\n");
+					printf("sort_lines: options usage -[dfnr]\n");
 					break;
 			}
 	}
@@ -84,7 +120,7 @@ int readargs(int count, char **args)
 }
 
 /* readlines:  read lines from input to memory cache */
-int xreadlines(char *lines[])
+int readlines(char *lines[])
 {
 	int i;
 	int len;			/* current line length */
@@ -132,6 +168,32 @@ void xstrcpy(char *s, char *t)
 		;
 }
 
+/* dircpy:  copy dir chars from t to s; assumes s is large enough */
+void dircpy(char *s, char *t)
+{
+	int c;
+	while (NUL != (c = *t++))
+	       if (isdirchar(c))
+		       *s++ = c;
+}
+
+/* strtolower:  convert s to lowercase */
+void strtolower(char *s)
+{
+	while (NUL != (*s = chartolower(*s++)))
+		;
+}
+
+/* chartolower:  convert c to lowercase */
+int chartolower(char c)
+{
+	if (c >= 'A' && c <= 'Z')
+		return c + 32;
+
+	return c;
+}
+
+
 #define CACHE_SIZE 1048576
 
 static char cache[CACHE_SIZE];
@@ -158,6 +220,9 @@ void printresult(char **s)
 	if (flags & F_NUMERIC)
 		printf("NUMERIC ");
 		
+	if (flags & F_DIR)
+		printf("DIRECTORY ");
+
 	printf("INPUT IN ");
 
 	if (flags & F_REVERSE)
@@ -165,7 +230,12 @@ void printresult(char **s)
 	else
 		printf("ASCENDING ");
 
-	printf("ORDER ===\n");
+	printf("ORDER ");
+
+	if (flags & F_FOLD)
+		printf("(IGNORE CASE) ");
+
+	printf(" ===\n");
 	
 	while (NULL != *s && xstrlen(*s) > 0)
 		printf("%s", *s++);
@@ -173,7 +243,7 @@ void printresult(char **s)
 
 
 /* qsort:  sort v using parameter comparator routine */
-void xqsort(void *v[], int left, int right, int isr, int (*comp)(void *, void *))
+void qsort(void *v[], int left, int right, int isr, int (*comp)(void *, void *))
 {
 	wdbg("sorting");
 	int i, last;
@@ -203,9 +273,9 @@ void xqsort(void *v[], int left, int right, int isr, int (*comp)(void *, void *)
 	wdbg("swapping left with last");
 	xswap(v, left, last);
 	wdbg("calling qsort for left side");
-	xqsort(v, left, last-1, isr, comp);
+	qsort(v, left, last-1, isr, comp);
 	wdbg("calling qsort for right side");
-	xqsort(v, last+1, right, isr, comp);
+	qsort(v, last+1, right, isr, comp);
 	wdbg("done!");
 }
 
@@ -213,6 +283,7 @@ void xqsort(void *v[], int left, int right, int isr, int (*comp)(void *, void *)
 int xstrcmp(char *s, char *t)
 {
 	wdbg("compare strings");
+
 	while (*s == *t) {
 		wdbg("is s = t?");
 		if (NUL == *s) {
@@ -225,6 +296,50 @@ int xstrcmp(char *s, char *t)
 	wdbg("no.");
 
 	return *s - *t;
+}
+
+/* strcmpci:  compare two strings, case insensitive */
+int strcmpci(char *s, char *t)
+{
+	while (chartolower(*s) == chartolower(*t)) {
+		if (NUL == *s)
+			return 0;
+		s++, t++;
+	}
+	return chartolower(*s) - chartolower(*t);
+}
+
+/* dircmp:  compare two directory strings */
+int dircmp(char *s, char *t)
+{
+	printf("dir cpy\n");
+	char u[xstrlen(s)];
+	char v[xstrlen(t)];
+
+	/* filter only directory characters */
+	dircpy(u, s);
+	dircpy(v, t);
+
+	/* compare modified string */
+	return xstrcmp(u, v);
+}
+
+/* dircmpci:  compare two directory strings, case insensitive */
+int dircmpci(char *s, char *t)
+{
+	char u[xstrlen(s)];
+	char v[xstrlen(t)];
+
+	/* filter only directory characters */
+	dircpy(u, s);
+	dircpy(v, t);
+
+	/* convert string to lowercase */
+	strtolower(u);
+	strtolower(v);
+
+	/* compare modified string */
+	return xstrcmp(u, v);
 }
 
 /* numcmp:  compare two strings, numerically */
@@ -261,9 +376,6 @@ void xswap(void *v[], int i, int j)
 	v[i] = v[j];
 	v[j] = tmp;
 }
-
-int xisdigit(char);
-int xisspace(char);
 
 /* atof:  converts a s to a floating point number */
 double xatof(char *s)
@@ -305,6 +417,26 @@ int xisdigit(char c)
 int xisspace(char c)
 {
 	return c == ' ';
+}
+
+int xisalpha(char c)
+{
+	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+int isdirchar(char c)
+{
+	printf("c = %c, is\n", c);
+	if (xisdigit(c))
+		printf("--a digit\n");
+	if (xisspace(c))
+		printf("--a space\n");
+	if (xisalpha(c))
+		printf("--alpha\n");
+	if (!xisdigit(c) && !xisspace(c) && !xisalpha(c))
+		printf("--none of these\n");
+
+	return xisdigit(c) || xisspace(c) || xisalpha(c);
 }
 
 void wdbg(char *s)
