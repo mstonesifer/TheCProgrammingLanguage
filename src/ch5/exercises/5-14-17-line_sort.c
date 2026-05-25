@@ -50,8 +50,6 @@ int isdirchar(char);
 int xisdigit(char);
 int xisspace(char);
 
-void wdbg(char *);
-
 /* line_sort:  sort input lines by various criteria */
 int main(int argc, char *argv[])
 {
@@ -245,23 +243,14 @@ void printresult(char **s)
 /* qsort:  sort v using parameter comparator routine */
 void qsort(void *v[], int left, int right, int isr, int (*comp)(void *, void *))
 {
-	wdbg("sorting");
 	int i, last;
 
 	if (left >= right)	/* do nothing if array contains */
 		return;		/* fewer than two elements */
-	wdbg("swapping left with mid");
 	xswap(v, left, (left + right)/2);
 	last = left;
-
 		
 	for (i = left+1; i <= right; i++) {
-		for (int z = 0; z < 5; z++) {
-			printf("%s", (char*)v[z]);
-		}
-		printf("\n");
-		//wdbg("checking against mid");
-		printf("left = %s\n", (char*)v[left]);
 		if (isr) {
 		       if ((*comp)(v[i], v[left]) >= 0) 
 				xswap(v, ++last, i);
@@ -270,30 +259,20 @@ void qsort(void *v[], int left, int right, int isr, int (*comp)(void *, void *))
 				xswap(v, ++last, i);
 		}
 	}
-	wdbg("swapping left with last");
+	
 	xswap(v, left, last);
-	wdbg("calling qsort for left side");
 	qsort(v, left, last-1, isr, comp);
-	wdbg("calling qsort for right side");
 	qsort(v, last+1, right, isr, comp);
-	wdbg("done!");
 }
 
 /* strcmp:  compare two strings, asciibetically */
 int xstrcmp(char *s, char *t)
 {
-	wdbg("compare strings");
-
 	while (*s == *t) {
-		wdbg("is s = t?");
-		if (NUL == *s) {
-			wdbg("yes!");
+		if (NUL == *s) 
 			return 0;
-		}
 		s++, t++;
 	}
-
-	wdbg("no.");
 
 	return *s - *t;
 }
@@ -312,7 +291,6 @@ int strcmpci(char *s, char *t)
 /* dircmp:  compare two directory strings */
 int dircmp(char *s, char *t)
 {
-	printf("dir cpy\n");
 	char u[xstrlen(s)];
 	char v[xstrlen(t)];
 
@@ -345,31 +323,22 @@ int dircmpci(char *s, char *t)
 /* numcmp:  compare two strings, numerically */
 int numcmp(char *s, char *t)
 {
-	wdbg("compare nums");
 	double u, v;
 
 	u = xatof(s);
 	v = xatof(t);
 
-	printf("[DBG]: is %f > %f?\n", u, v);
-	if (u > v) {
-		wdbg("yes");
+	if (u > v)
 		return 1;
-	}
-	if (u < v) {
-		wdbg("no");
+	if (u < v)
 		return -1;
-	}
 
-	wdbg("they are eq");
-	return 0;
+	return 0;	/* equal */
 }
 
 /* swap:  switch the contents of an array at indecies i and j in place */
 void xswap(void *v[], int i, int j)
 {
-	//wdbg("swapping");
-	printf("swapping %s with %s\n", (char*)v[i], (char*)v[j]);
 	void *tmp;
 
 	tmp = v[i];
@@ -426,22 +395,5 @@ int xisalpha(char c)
 
 int isdirchar(char c)
 {
-	printf("c = %c, is\n", c);
-	if (xisdigit(c))
-		printf("--a digit\n");
-	if (xisspace(c))
-		printf("--a space\n");
-	if (xisalpha(c))
-		printf("--alpha\n");
-	if (!xisdigit(c) && !xisspace(c) && !xisalpha(c))
-		printf("--none of these\n");
-
 	return xisdigit(c) || xisspace(c) || xisalpha(c);
 }
-
-void wdbg(char *s)
-{
-	if (flags & F_DEBUG)
-		printf("[DBG]: %s\n", s);
-}
-
