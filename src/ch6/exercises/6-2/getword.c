@@ -11,14 +11,15 @@ int getword(char *word, int lim)
   	char *w = word;
 
 	c = skip_ignored();
-	if (EOF != c)
+	if (EOF != c) {
 		*w++ = c;
-	if (!isalpha(c)) {
+	}
+	if (!isalpha(c) && UNSC != c) { /* words can start with '_' */
 		*w = NULC;
 		return c;
 	}
 	for ( ; --lim > 0; w++)
-		if (!isalnum(*w = getch()) && '_' != c) {
+		if (!isalnum(*w = getch()) && UNSC != *w) {
 			ungetch(*w);
 			break;
 		}
@@ -32,8 +33,11 @@ static int skip_ignored(void)
 	int c[] = { NULC, NULC };	/* track last (0) and current (1) chars */
 	int b;				/* circuit breaker */
 
-	while (isspace(c[1] = getch()) && TABC == c[1]) /* skip whitespace */
+	while (isspace(c[1] = getch()) || TABC == c[1]) /* skip whitespace */
 		;
+	if (c[1] == PTRC) /* skip strings of stars */
+		while (PTRC == (c[1] = getch()))
+			;
 	/* set breaker based on start of ignored characters */ 
 	switch (c[1]) {
 		case PPIC:	/* preprocessor instruction */

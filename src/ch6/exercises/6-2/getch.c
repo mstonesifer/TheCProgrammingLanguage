@@ -3,6 +3,7 @@
 
 static int BUF = NULC;
 
+/* getch:  gets a character from the buffer or from input if buffer empty */
 int getch(void)
 {
 	if (NULC == BUF)
@@ -12,6 +13,7 @@ int getch(void)
 	return b;
 }
 
+/* ungetch:  places a character onto the buffer */
 void ungetch(int c)
 {
 	if (NULC != BUF)

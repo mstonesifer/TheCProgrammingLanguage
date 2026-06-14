@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
+
 #include "varnames.h"
 
 /* strcomp:  compare two strings, return 0 if equal */
@@ -14,6 +16,8 @@ int strcomp(char *s, char *t)
 	return *s - *t;
 }
 
+
+/* my_atoi:  convert s to integer */
 int my_atoi(char *s)
 {
 	int n;
@@ -24,7 +28,7 @@ int my_atoi(char *s)
 		s++;
 
 	/* set sign */
-	if ('-' == *s) {
+	if (HYPC == *s) {
 		s++;
 		sign = -1;
 	}
@@ -35,8 +39,28 @@ int my_atoi(char *s)
 	return n;
 }
 
+/* strcopy:  copy t into s, assumes s is large enough */
 void strcopy(char *s, char *t)
 {
 	while (NULC != (*s++ = *t++))
+		;
+}
+
+/* strdupe:  make a duplicate of s */
+char *strdupe(char *s)
+{
+	char *p;
+
+	p = (char *) malloc(strlength(s)+1);	/* +1 for '\0' */
+	if (p != NULL)
+		strcopy(p, s);
+	return p;
+}
+
+/* strlength:  get length of s */
+int strlength(char *s)
+{
+	int i;
+	while (i++ < MAXWORDLEN && NULC != *s++)
 		;
 }
